@@ -4,7 +4,7 @@ using namespace std;
 #define v vector
 
 /*
-    *   BinaryLifting: just pass parent array to the constructor (0 based indexing)
+    *   BinaryLifting: just pass adj list to the constructor (0 based indexing)
     *   Methods: KthAncestor, LCA, Dist
     *   PreComputation: O(N*LogN)
     *   Query: O(LogN)
@@ -15,13 +15,13 @@ private:
     int n, LOGN, root;
     v<v<int>> up;
     v<int> depth;
-    v<v<int>> adj;
+    v<v<int>> children;
     void init(v<int> &parent)
     {
         LOGN = log2(n) + 1;
         up.assign(n, v<int>(LOGN, -1));
         depth.assign(n, 0);
-        adj.resize(n);
+        children.resize(n);
         
         for (int i = 0; i < n; ++i)
             up[i][0] = parent[i];
@@ -29,7 +29,7 @@ private:
         for (int i = 0; i < n; ++i)
         {
             if (parent[i] != -1)
-                adj[parent[i]].push_back(i);
+                children[parent[i]].push_back(i);
             else
                 root = i;
         }
@@ -43,14 +43,22 @@ private:
         }
 
         depth[node] = d;
-        for (int child : adj[node])
+        for (int child : children[node])
             buildDfs(child, d + 1);
         
     }
 public:
-    BinaryLifting(v<int> &parent)
+    BinaryLifting(v<v<int>> &adj, int root = 0)
     {
-        n = parent.size();
+        n = adj.size();
+        v<int> parent(n, -1);
+        function<void(int, int)> buildParentArray = [&](int cur, int p) {
+            parent[cur] = p;
+            for(int nb : adj[cur])
+                if(nb != p)
+                    buildParentArray(nb, cur);
+        };
+        buildParentArray(0, -1);
         init(parent);
         buildDfs(root, 0);
     }
