@@ -7,7 +7,7 @@ using namespace std;
     * Pass Size of Array and Neutral Value in the constructor
     * Modify the merge function
  */
-template <class T>
+template <typename T>
 class SegTree
 {
 private:
