@@ -50,6 +50,7 @@ private:
 public:
     BinaryLifting(v<v<int>> &adj, int root = 0)
     {
+        this->root = root;
         n = adj.size();
         v<int> parent(n, -1);
         function<void(int, int)> buildParentArray = [&](int cur, int p) {
@@ -58,7 +59,7 @@ public:
                 if(nb != p)
                     buildParentArray(nb, cur);
         };
-        buildParentArray(0, -1);
+        buildParentArray(root, -1);
         init(parent);
         buildDfs(root, 0);
     }
