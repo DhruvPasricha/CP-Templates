@@ -1,38 +1,50 @@
 #include <bits/stdc++.h>
 using namespace std;
 /*
- * Segment Tree (0 based indexing)
- * Point Update and Range Query O(log N)
- * Usage:
-    * Pass Size of Array and Neutral Value in the constructor
-    * Modify the merge function
+ *  Segment Tree (0 based indexing)
+ *  Point Update and Range Query O(log N)
+ *  Usage:
+    *   Pass initial array and neutral value to the constructor
+    *   Create a merge function outside the class
  */
-template <typename T>
-class SegTree
-{
-private:
-    int len;
-    vector<T> segtree;
-    const T NEUTRAL_VALUE;
-    T merge(T a, T b) { return a + b; } // (merge function)
-public:
-    SegTree(int len, int nv) : len(len), segtree(2 * len), NEUTRAL_VALUE(nv) {}
-    void set(int ind, T val)
-    {
-        for (segtree[ind += len] = val; ind > 1; ind >>= 1)
-            segtree[ind >> 1] = merge(segtree[ind], segtree[ind ^ 1]);
+#define v vector
+template < typename T >
+class SegmentTree {
+    v < v < T >> Tree;
+    T neutralValue;
+    T query(int level, int idx, int treeLeft, int treeRight, int l, int r) {
+        if (treeLeft > treeRight or treeRight < l or treeLeft > r or r < treeLeft or l > treeRight or level == Tree.size())
+            return neutralValue;
+        if (l <= treeLeft and treeRight <= r)
+            return Tree[level][idx];
+        int m = (treeLeft + treeRight) / 2;
+        return merge(query(level + 1, 2 * idx, treeLeft, m, l, r), query(level + 1, 2 * idx + 1, m + 1, treeRight, l, r));
     }
-    T query(int from, int to) // [from, to]
-    {
-        ++to;
-        auto res = NEUTRAL_VALUE;
-        for (from += len, to += len; from < to; from >>= 1, to >>= 1)
-        {
-            if ((from & 1) != 0)
-                res = merge(res, segtree[from++]);
-            if ((to & 1) != 0)
-                res = merge(res, segtree[--to]);
+public:
+    SegmentTree(v < T > & A, T neutralValue) {
+        this -> neutralValue = neutralValue;
+        int n = A.size();
+        Tree.push_back(v < T > (1, neutralValue));
+        int prev = 1;
+        while (prev < n) {
+            Tree.push_back(v < T > (2 * prev, neutralValue));
+            prev *= 2;
         }
-        return res;
+        int levels = Tree.size();
+        for (int i = 0; i < n; i++)
+            Tree[levels - 1][i] = A[i];
+        for (int i = levels - 2; i >= 0; i--)
+            for (int j = 0; j < (1 << i); j++)
+                Tree[i][j] = merge(Tree[i + 1][2 * j], Tree[i + 1][2 * j + 1]);
+    }
+    void update(int idx, T val) {
+        int levels = Tree.size();
+        Tree[levels - 1][idx] = val;
+        idx /= 2;
+        for (int i = levels - 2; i >= 0; i--, idx /= 2)
+            Tree[i][idx] = merge(Tree[i + 1][2 * idx], Tree[i + 1][2 * idx + 1]);
+    }
+    T query(int l, int r) {
+        return query(0, 0, 0, Tree.back().size() - 1, l, r);
     }
 };
