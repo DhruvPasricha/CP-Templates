@@ -15,7 +15,7 @@ public:
         return st.size() - countElementsLessThanX(x);
     }
 
-    int getKthElement(int k) {
+    T getKthElement(int k) {
         return *st.find_by_order(k);
     }
     
