@@ -1,50 +1,76 @@
-#include <bits/stdc++.h>
-using namespace std;
-/*
- *  Segment Tree (0 based indexing)
- *  Point Update and Range Query O(log N)
- *  Usage:
-    *   Pass initial array and neutral value to the constructor
-    *   Create a merge function outside the class
- */
-#define v vector
-template < typename T >
-class SegmentTree {
-    v < v < T >> Tree;
-    T neutralValue;
-    T query(int level, int idx, int treeLeft, int treeRight, int l, int r) {
-        if (treeLeft > treeRight or treeRight < l or treeLeft > r or r < treeLeft or l > treeRight or level == Tree.size())
-            return neutralValue;
-        if (l <= treeLeft and treeRight <= r)
-            return Tree[level][idx];
-        int m = (treeLeft + treeRight) / 2;
-        return merge(query(level + 1, 2 * idx, treeLeft, m, l, r), query(level + 1, 2 * idx + 1, m + 1, treeRight, l, r));
-    }
-public:
-    SegmentTree(v < T > & A, T neutralValue) {
-        this -> neutralValue = neutralValue;
-        int n = A.size();
-        Tree.push_back(v < T > (1, neutralValue));
-        int prev = 1;
-        while (prev < n) {
-            Tree.push_back(v < T > (2 * prev, neutralValue));
-            prev *= 2;
+struct Node
+{
+    int mn;
+    Node(int mn = INT_MAX) : mn(mn) {}
+};
+
+Node operator + (Node a, Node b)
+{
+    return Node(min(a.mn, b.mn));
+}
+
+template<typename T>
+struct SegTree
+{
+    T *tree;
+    const int n;
+    const T identity;
+
+private:
+#define mid         ((tL + tR) >> 1)
+#define lcId        ((tId << 1) + 1)
+#define rcId        lcId + 1
+#define leftChild   lcId, tL, tM
+#define rightChild  rcId, tM + 1, tR
+
+    void update(int tId, int tL, int tR, int idx, T val)
+    {
+        if(tL == tR)
+        {
+            tree[tId] = val;
+            return;
         }
-        int levels = Tree.size();
-        for (int i = 0; i < n; i++)
-            Tree[levels - 1][i] = A[i];
-        for (int i = levels - 2; i >= 0; i--)
-            for (int j = 0; j < (1 << i); j++)
-                Tree[i][j] = merge(Tree[i + 1][2 * j], Tree[i + 1][2 * j + 1]);
+
+        int tM = mid;
+
+        if(idx <= mid)
+            update(leftChild, idx, val);
+        else
+            update(rightChild, idx, val);
+
+        tree[tId] = tree[lcId] + tree[rcId];
+    }    
+
+    T query(int tId, int tL, int tR, int l, int r)
+    {
+        if(l > tR or r < tL) return identity;
+        if(l <= tL and tR <= r) return tree[tId];
+        int tM = mid;
+        return query(leftChild, l, r) + query(rightChild, l, r);
     }
-    void update(int idx, T val) {
-        int levels = Tree.size();
-        Tree[levels - 1][idx] = val;
-        idx /= 2;
-        for (int i = levels - 2; i >= 0; i--, idx /= 2)
-            Tree[i][idx] = merge(Tree[i + 1][2 * idx], Tree[i + 1][2 * idx + 1]);
+
+#undef mid 
+#undef lcId
+#undef rcId    
+#undef leftChild 
+#undef rightChild 
+public:
+    SegTree(int n, T identity) : n(n), identity(identity)
+    {
+        tree = new T[4 * n];
+        for(int i = 0; i < 4 * n; ++i)
+        {
+            tree[i] = identity;
+        }
     }
-    T query(int l, int r) {
-        return query(0, 0, 0, Tree.back().size() - 1, l, r);
+
+    void update(int idx, T val)
+    {
+        update(0, 0, n - 1, idx, val);
+    }
+
+    T query(int l, int r)
+    {
+        return query(0, 0, n - 1, l, r);
     }
 };
